@@ -6,5 +6,12 @@ export default {
       url: `${api_name}`,
       method: 'get'
     })
+  },
+  getListByParentId(id) {
+    return request({
+      url: `${api_name}/${id}`,
+      method: 'get',
+      params: id
+    })
   }
 }

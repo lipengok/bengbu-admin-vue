@@ -30,7 +30,10 @@
             :value="subject.id"/>
         </el-select>
         <!-- 二级分类 -->
-        <el-select v-model="courseInfo.subjectId" placeholder="请选择">
+        <el-select 
+          @focus="initSubjectListSecond"
+          v-model="courseInfo.subjectId" 
+          placeholder="请选择">
           <el-option
             v-for="subject in subSubjectList"
             :key="subject.value"
@@ -101,20 +104,15 @@ export default {
     initSubjectList() {
       subject.getNestedTreeList().then(response => {
         this.subjectNestedList = response.data.list;
-        this.$message({
-          type:"success",
-          message:"查询成功"
-        });
       })
     },
+    initSubjectListSecond(){
+      this.courseInfo.subjectId="";
+    },
     subjectLevelOneChanged(value) {
-        console.log(value)
-        for (let i = 0; i < this.subjectNestedList.length; i++) {
-            if (this.subjectNestedList[i].id === value) {
-                this.subSubjectList = this.subjectNestedList[i].children
-                this.courseInfo.subjectId = ''
-            }
-        }
+        subject.getListByParentId(value).then(response=>{
+          this.subSubjectList = response.data.list;
+        });
     },
     next() {
       console.log('next')
