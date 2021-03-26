@@ -1,4 +1,3 @@
-
 <template>
   <div class="app-container">
     <h2 style="text-align: center;">发布新课程</h2>
@@ -10,9 +9,6 @@
     <el-form label-width="120px">
       <el-form-item label="课程标题">
         <el-input v-model="courseInfo.title" placeholder=" 示例：机器学习项目课：从基础到搭建项目视频课程。专业名称注意大小写"/>
-      </el-form-item>
-      <el-form-item label="课程描述">
-        <el-input v-model="courseInfo.description" placeholder="请输入对于课程描述"/>
       </el-form-item>
       <!-- 所属分类：级联下拉列表 -->
       <!-- 一级分类 -->
@@ -41,7 +37,36 @@
             :value="subject.id"/>
         </el-select>
       </el-form-item>
-      
+      <!-- 课程讲师 -->
+      <el-form-item label="课程讲师">
+        <el-select
+          @focus="initTeacher"
+          v-model="courseInfo.teacherId"
+          placeholder="请选择">
+          <el-option
+            v-for="teacher in teacherList"
+            :key="teacher.id"
+            :label="teacher.name"
+            :value="teacher.id"/>
+        </el-select>
+      </el-form-item>
+      <el-form-item label="课程详情描述">
+         <el-input
+            type="textarea"
+            :autosize="{ minRows: 10, maxRows: 20}"
+            placeholder="请输入内容"
+            v-model="courseInfo.description">
+          </el-input>
+      </el-form-item> 
+      <el-form-item label="上传封面">
+        <el-upload
+          class="upload-demo"
+          action="http://localhost:9529/admin/edu/course/upload"
+          :on-success="uploadSuccess">
+          <el-button size="small" type="primary">点击上传</el-button>
+          <div slot="tip" class="el-upload__tip">请选择封面</div>
+        </el-upload>
+      </el-form-item>
       <!-- 所属分类 TODO -->
       <!-- 课程讲师 TODO -->
       <el-form-item label="总课时">
@@ -63,6 +88,7 @@
 <script>
 import course from '@/api/edu/course'
 import subject from '@/api/edu/subject'
+import teacher from '@/api/edu/teacher'
 const defaultForm = {
   title: '',
   subjectId: '',
@@ -72,13 +98,16 @@ const defaultForm = {
   cover: '',
   price: 0
 }
+
 export default {
   data() {
     return {
       courseInfo: defaultForm,
       saveBtnDisabled: false ,// 保存按钮是否禁用
       subjectNestedList: [],//一级分类列表
-      subSubjectList: []//二级分类列表
+      subSubjectList: [],//二级分类列表
+      teacherList: [],//讲师列表
+      
     }
   },
   watch: {
@@ -93,27 +122,47 @@ export default {
   },
   methods: {
     init() {
-      console.log(this.subjectNestedList);
       if (this.$route.params && this.$route.params.id) {
         const id = this.$route.params.id
-        console.log(id)
-      } else {
-        this.courseInfo = { ...defaultForm }
-      }
+        //根据id获取课程基本信息
+        this.fetchCourseInfoById(id)
+      } 
     },
+    //回显数据
+    fetchCourseInfoById(id) {
+      course.getCourseInfoById(id).then(response => {
+        this.courseInfo = response.data.item
+      }).catch((response) => {
+        this.$message({
+          type: 'error',
+          message: response.message
+        })
+      })
+    },
+    //一级下拉框初始化效果
     initSubjectList() {
       subject.getNestedTreeList().then(response => {
         this.subjectNestedList = response.data.list;
       })
     },
+    //二级下拉框初始化效果
     initSubjectListSecond(){
       this.courseInfo.subjectId="";
     },
+    //讲师选择初始化
+    initTeacher(){
+      teacher.getList().then(response=>{
+        console.log(response.data.items);
+        this.teacherList=response.data.items;
+      });
+    },
+    //一级下拉框内容改变时触发的动作
     subjectLevelOneChanged(value) {
         subject.getListByParentId(value).then(response=>{
           this.subSubjectList = response.data.list;
         });
     },
+    //下一步按钮
     next() {
       console.log('next')
       this.saveBtnDisabled = true
@@ -125,12 +174,13 @@ export default {
     },
     // 保存
     saveData() {
+      console.log(this.courseInfo);
       course.saveCourseInfo(this.courseInfo).then(response => {
         this.$message({
           type: 'success',
           message: '保存成功!'
         })
-        return response// 将响应结果传递给then
+        return response
       }).then(response => {
         this.$router.push({ path: '/edu/course/chapter/' + response.data.courseId })
       }).catch((response) => {
@@ -140,9 +190,15 @@ export default {
         })
       })
     },
+    // 完成之后页面跳转
     updateData() {
       this.$router.push({ path: '/edu/course/chapter/1' })
-    }
+    },
+    //文件上传
+    uploadSuccess(file){
+      console.log(file.data.cover)
+      this.courseInfo.cover=file.data.cover;
+    },
   }
 }
 </script>

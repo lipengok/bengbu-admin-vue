@@ -9,5 +9,28 @@ export default {
       data: courseInfo
     })
   },
+  //获取课程封面
+  getImgPathById(id) {
+    return request({
+      url: `${api_name}/getImgPathById/${id}`,
+      method: 'get'
+    })
+  },
+
+  //根据id获取课程信息
+  getCourseInfoById(id) {
+    return request({
+      url: `${api_name}/course-info/${id}`,
+      method: 'get'
+    })
+  },
+
+  getPageList(page, limit, searchObj) {
+    return request({
+      url: `${api_name}/${page}/${limit}`,
+      method: 'get',
+      params: searchObj
+    })
+  },
 
 }

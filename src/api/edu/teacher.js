@@ -47,4 +47,11 @@ export default {
         data: teacher
     })
   },
+  //  新增讲师路由
+  getList() {
+    return request({
+        url: api_name,
+        method: 'get'
+    })
+  },
 }
