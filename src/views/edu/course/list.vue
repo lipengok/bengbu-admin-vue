@@ -68,7 +68,8 @@
       <template slot-scope="scope">
         <div class="info">
           <div class="pic">
-            <img :src="scope.row.cover" :alt="课程封面" width="150px">
+            <!-- <img :src="scope.row.cover" :alt="课程封面" width="150px"> -->
+            <img src="https://img.tuguaishou.com/ips_templ_preview/f7/e7/d4/lg_1625241_1585914110_5e8720fe486cb.jpg!w1024_w?auth_key=2249175531-0-0-dcaedca6200e2ce179bded7c1a174e92" :alt="课程封面" width="50px">
           </div>
           <div class="title">
             <a href="">{{ scope.row.title }}</a>
@@ -106,7 +107,7 @@
         <router-link :to="'/edu/course/chapter/'+scope.row.id">
           <el-button type="text" size="mini" icon="el-icon-edit">编辑课程大纲</el-button>
         </router-link>
-        <el-button type="text" size="mini" icon="el-icon-delete">删除</el-button>
+        <el-button type="text" size="mini" icon="el-icon-delete" @click="removeDataById(scope.row.id)">删除</el-button>
       </template>
     </el-table-column>
   </el-table>
@@ -192,7 +193,32 @@ export default {
       this.searchObj = {}
       this.subSubjectList = [] // 二级分类列表
       this.fetchData()
-    }
+    },
+    removeDataById(id) {
+        // debugger
+        this.$confirm('此操作将永久删除该课程，以及该课程下的章节和视频，是否继续?', '提示', {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning'
+        }).then(() => {
+            return course.removeById(id)
+        }).then(() => {
+            //删除成功之后就会刷新一次列表
+            this.fetchData()
+            this.$message({
+                type: 'success',
+                message: '删除成功!'
+            })
+        }).catch((response) => { // 失败
+            if (response === 'cancel') {
+                this.$message({
+                    type: 'info',
+                    message: '已取消删除'
+                })
+            }
+        })
+  },
+
   }
 }
 </script>
